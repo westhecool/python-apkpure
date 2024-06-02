@@ -1,5 +1,6 @@
 import bs4
 import requests
+import os
 
 def get_info(id):
     url = f'https://apkpure.net/null/{id}/versions'
@@ -45,12 +46,13 @@ def get_info(id):
             size = i.find('span', class_='ver-item-s').text.strip().lower()
             date = i.find('span', class_='update-on').text.strip().lower()
             url = i['href'].replace('/download/', '/downloading/')
+            type = 'xapk' if 'xapk' in _get_download_url(url).lower() else 'apk' # todo: have a better way to determine the type
             versions.append({
                 'url': url,
                 'version': version,
                 'size': size,
                 'date': date,
-                'type': 'apk'
+                'type': type
             })
     return {
         'versions': versions,
@@ -60,12 +62,7 @@ def get_info(id):
         'date': date
     }
 
-def download(url, path_or_file_like):
-    file = None
-    if isinstance(path_or_file_like, str):
-        file = open(path_or_file_like, 'wb')
-    else:
-        file = path_or_file_like
+def _get_download_url(url):
     r = requests.get(url)
     soop = bs4.BeautifulSoup(r.text, 'html.parser')
     download_url = None
@@ -73,6 +70,15 @@ def download(url, path_or_file_like):
         download_url = soop.find('a', class_='download-start-btn')['href']
     elif soop.find('a', id='download_link'):
         download_url = soop.find('a', id='download_link')['href']
+    return download_url
+
+def download(url, path_or_file_like):
+    file = None
+    if isinstance(path_or_file_like, str):
+        file = open(path_or_file_like, 'wb')
+    else:
+        file = path_or_file_like
+    download_url = _get_download_url(url)
     r = requests.get(download_url)
     file.write(r.content)
     file.close()
