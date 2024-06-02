@@ -1,6 +1,7 @@
 import argparse
 import main
 import re
+import os
 def make_safe_filename(filename):
     invalid_chars = r'[<>:"/\\|?*]'
     safe_filename = re.sub(invalid_chars, '', filename)
@@ -9,10 +10,14 @@ def make_safe_filename(filename):
 args = argparse.ArgumentParser()
 args.add_argument("command", choices=["download"])
 args.add_argument("id")
+args.add_argument("--output-dir", "-d", default=".", help="Output directory")
+args.add_argument("--output-file", "-f", default=None, help="Output file name")
 args = args.parse_args()
+
+os.makedirs(args.output_dir, exist_ok=True)
 
 if args.command == "download":
     info = main.get_info(args.id)
     print(f"Downloading {info['title']} v{info['versions'][0]['version']}...", end='', flush=True)
-    main.download(info["versions"][0]["url"], f"./{make_safe_filename(info['title'])} v{info['versions'][0]['version']}.{info['versions'][0]['type']}")
+    main.download(info["versions"][0]["url"], f"{args.output_dir}/{args.output_file or make_safe_filename(info['title'])} v{info['versions'][0]['version']}.{info['versions'][0]['type']}")
     print("done!", flush=True)
