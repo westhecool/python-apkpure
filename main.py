@@ -41,4 +41,16 @@ def get_info(id):
         'developer': developer,
         'date': date
     }
-print(get_info('com.garena.game.bc'))
+
+def download(url, path_or_file_like):
+    file = None
+    if isinstance(path_or_file_like, str):
+        file = open(path_or_file_like, 'wb')
+    else:
+        file = path_or_file_like
+    r = requests.get(url)
+    soop = bs4.BeautifulSoup(r.text, 'html.parser')
+    download_url = soop.find('a', class_='download-start-btn')['href']
+    r = requests.get(download_url)
+    file.write(r.content)
+    file.close()
