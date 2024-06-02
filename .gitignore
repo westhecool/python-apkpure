@@ -2,3 +2,4 @@ venv/
 *.apk
 *.xapk
 *.pyc
+download-list.txt
