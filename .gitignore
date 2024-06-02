@@ -3,3 +3,4 @@ venv/
 *.xapk
 *.pyc
 download-list.txt
+failed.txt
