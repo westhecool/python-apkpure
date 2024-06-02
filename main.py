@@ -35,7 +35,6 @@ def get_info(id):
                 'url': url,
                 'version': version,
                 'version_code': version_code,
-                'type': type,
                 'date': date,
                 'size': size,
                 'android_version': android_version
@@ -46,13 +45,11 @@ def get_info(id):
             size = i.find('span', class_='ver-item-s').text.strip().lower()
             date = i.find('span', class_='update-on').text.strip().lower()
             url = i['href'].replace('/download/', '/downloading/')
-            type = 'xapk' if 'xapk' in _get_download_url(url).lower() else 'apk' # todo: have a better way to determine the type
             versions.append({
                 'url': url,
                 'version': version,
                 'size': size,
-                'date': date,
-                'type': type
+                'date': date
             })
     return {
         'versions': versions,
@@ -62,23 +59,29 @@ def get_info(id):
         'date': date
     }
 
-def _get_download_url(url):
-    r = requests.get(url)
+def generate_download_url(version_url):
+    r = requests.get(version_url)
     soop = bs4.BeautifulSoup(r.text, 'html.parser')
     download_url = None
     if soop.find('a', class_='download-start-btn'):
         download_url = soop.find('a', class_='download-start-btn')['href']
     elif soop.find('a', id='download_link'):
         download_url = soop.find('a', id='download_link')['href']
-    return download_url
+    type = 'xapk' if 'xapk' in download_url.lower() else 'apk'
+    return {
+        'download_url': download_url,
+        'file_type': type
+    }
 
-def download(url, path_or_file_like):
+def download(version_url, path_or_file_like, auto_file_extension=True):
     file = None
+    download_info = generate_download_url(version_url)
     if isinstance(path_or_file_like, str):
+        if auto_file_extension:
+            path_or_file_like += '.' + download_info['file_type']
         file = open(path_or_file_like, 'wb')
     else:
         file = path_or_file_like
-    download_url = _get_download_url(url)
-    r = requests.get(download_url)
+    r = requests.get(download_info['download_url'])
     file.write(r.content)
     file.close()
