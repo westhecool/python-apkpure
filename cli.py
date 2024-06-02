@@ -13,6 +13,6 @@ args = args.parse_args()
 
 if args.command == "download":
     info = main.get_info(args.id)
-    print(f"Downloading {info['title']} v{info['versions'][0]['version']}...", end='')
+    print(f"Downloading {info['title']} v{info['versions'][0]['version']}...", end='', flush=True)
     main.download(info["versions"][0]["url"], f"./{make_safe_filename(info['title'])} v{info['versions'][0]['version']}.{info['versions'][0]['type']}")
-    print("done!")
+    print("done!", flush=True)
